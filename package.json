@@ -1,0 +1,16 @@
+{
+  "name": "xareis-api",
+  "version": "1.0.0",
+  "description": "RESTful API for xareis project.",
+  "main": "server.js",
+  "repository": "https://github.com/ciless/xareis-api",
+  "author": "ciless",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "eslint": "^5.12.1"
+  },
+  "dependencies": {
+    "eslint-config-google": "^0.11.0"
+  }
+}
