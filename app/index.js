@@ -10,19 +10,22 @@ const cors = require('./api/middleware/cors');
 
 // Include routes
 const userRoutes = require('./api/routes/user');
+const authRoutes = require('./api/routes/auth');
 
 // Run services
 const app = express();
 connectors();
 
-// Init routes
-app.use('/api/user', userRoutes);
-
 // Use middleware
 app.use(morgan('dev'));
-app.use(cors);
-app.use(bodyParser.urlencoded({extended: false}));
+app.use('/uploads', express.static('uploads'));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(cors);
+
+// Init routes
+app.use('/api/user', userRoutes);
+app.use('/api/auth', authRoutes);
 
 // Error handling
 app.use((req, res, next) => {
@@ -31,11 +34,11 @@ app.use((req, res, next) => {
     next(error);
 });
 
-app.use((error, req, res) => {
+app.use((error, req, res, next) => {
     res.status(error.status || 500);
     res.json({
         error: {
-            message: error.message,
+            message: error.message
         }
     })
 });
