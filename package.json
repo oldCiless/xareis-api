@@ -8,12 +8,16 @@
     "license": "MIT",
     "private": true,
     "scripts": {
-        "dev": "nodemon",
+        "dev": "nodemon ./app",
+        "test": "mocha --timeout 140000",
         "lint": "eslint app",
         "lint:fix": "eslint --fix app"
     },
     "devDependencies": {
+        "chai": "^4.2.0",
+        "chai-http": "^4.2.1",
         "eslint": "^5.12.1",
+        "mocha": "^5.2.0",
         "nodemon": "^1.18.9"
     },
     "dependencies": {

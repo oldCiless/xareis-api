@@ -1,28 +1,33 @@
 // Include libs
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 
 // Include services & middleware
-
-const connectors = require('./api/connectors');
-const cors = require('./api/middleware/cors');
-const jwt = require('./api/middleware/jwt');
+const connectors = require('./connectors');
+const cors = require('./middleware/cors');
+const jwt = require('./middleware/jwt');
 
 // Include routes
-const userRoutes = require('./api/routes/user');
-const authRoutes = require('./api/routes/auth');
+const userRoutes = require('./routes/user');
+const authRoutes = require('./routes/auth');
 
 // Run services
 const app = express();
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => {
+    console.log('Server started on port ' + port);
+});
 connectors();
 
 // Use middleware
 app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads'));
+app.use(cors);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors);
 app.use(jwt);
 
 // Init routes
