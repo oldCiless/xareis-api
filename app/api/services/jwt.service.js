@@ -6,6 +6,10 @@ module.exports = {
     },
 
     async verify(token) {
-        return await jwt.verify(token, process.env.JWT_KEY);
+        try {
+            return await jwt.verify(token, process.env.JWT_KEY);
+        } catch (e) {
+            return 'Invalid token';
+        }
     }
 };

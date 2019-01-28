@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const randomString = require('randomstring');
 
 const UserSchema = mongoose.Schema({
     phone: { type: String, required: 'Phone is required', unique: true, trim: true },
@@ -8,7 +7,12 @@ const UserSchema = mongoose.Schema({
     firstName: { type: String, required: 'First name is required', trim: true },
     lastName: { type: String, required: 'Last name is required', trim: true },
     avatar: { type: String, default: 'uploads\\\\avatars\\\\no_avatar.png' },
-    access: { type: String, default: 'User' }
+    access: { type: String, default: 'User' },
+    confirmed: { type: Boolean, default: false },
+    code: {
+        code: { type: Number },
+        expired: { type: Date },
+    },
 }, { timestamps: true });
 
 UserSchema.statics.createFields = [
@@ -40,6 +44,16 @@ UserSchema.pre('save', function(next) {
 
 UserSchema.methods.comparePasswords = function(password) {
   return bcrypt.compareSync(password, this.password);
+};
+
+UserSchema.methods.codeTimeout = function() {
+    const currentDate = new Date();
+    if (!this.code.code) {
+        return false;
+    } else if (currentDate >= this.code.expired) {
+        return false;
+    }
+    return true;
 };
 
 module.exports = mongoose.model('User', UserSchema);

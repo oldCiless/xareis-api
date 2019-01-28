@@ -7,6 +7,7 @@ const morgan = require('morgan');
 
 const connectors = require('./api/connectors');
 const cors = require('./api/middleware/cors');
+const jwt = require('./api/middleware/jwt');
 
 // Include routes
 const userRoutes = require('./api/routes/user');
@@ -22,6 +23,7 @@ app.use('/uploads', express.static('uploads'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors);
+app.use(jwt);
 
 // Init routes
 app.use('/api/user', userRoutes);
