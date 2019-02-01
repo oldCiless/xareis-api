@@ -5,13 +5,21 @@ const User = require('../models/user.model');
 const jwtService = require('../services/jwt.service');
 const m2mService = require('../services/m2m.service');
 
+
 exports.sign_up = async (req, res, next) => {
-    const checkUser = await User.findOne({ phone: req.body.phone });
-    if (checkUser) {
-        res.status(409).json({
-            message: 'User already exists',
-        });
-    } else {
+    const checkedUser = await User.findOne({ phone: req.body.phone });
+
+    if (checkedUser) {
+        if (checkedUser.confirmed) {
+            return res.status(409).json({
+                message: 'User already exists',
+            });
+        } else {
+            await User.deleteOne(checkedUser);
+        }
+    }
+
+    try {
         const newUser = await User.create(pick(req.body, User.createFields));
         const token = await jwtService.genToken({ phone: req.body.phone });
 
@@ -27,9 +35,13 @@ exports.sign_up = async (req, res, next) => {
         res.status(201).json({
             user: userPublicInfo,
             token: token,
-            message: 'Sign Up success',
+            message: 'SignUp success',
         });
+
+    } catch (e) {
+        next(e);
     }
+
 };
 
 exports.sign_in = async (req, res, next) => {
@@ -73,8 +85,7 @@ exports.gen_code = async (req, res, next) => {
             });
 
             const expiredDate = new Date().setMinutes(new Date().getMinutes() + 1);
-
-            await m2mService.sendMessage(user.phone, `Ваш код верификации: ${code}`);
+            //  await m2mService.sendMessage(user.phone, `Ваш код верификации: ${code}`);
 
             user.code.code = code;
             user.code.expired = expiredDate;
@@ -87,6 +98,26 @@ exports.gen_code = async (req, res, next) => {
         }
     } else {
         res.status(400).json({ message: 'Please wait' });
+    }
+};
+
+exports.verify = async (req, res, next) => {
+    if (!req.user) {
+        return res.status(403).json({ message: 'User not found' });
+    }
+
+    const user = await User.findOne(req.user);
+
+    if (user.confirmed) {
+        res.status(403).json({ message: 'User already verified' });
+    }
+    console.log(req.body);
+    if (user.verify(req.body.code)) {
+        user.confirmed = true;
+        user.save();
+        res.status(201).json({ message: 'User verified' });
+    } else {
+        res.status(400).json({ message: 'Bad code' });
     }
 };
 

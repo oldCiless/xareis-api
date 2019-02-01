@@ -2,12 +2,18 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const UserSchema = mongoose.Schema({
-    phone: { type: String, required: 'Phone is required', unique: true, trim: true },
-    password: { type: String, required: 'Password is required', trim: true },
+    phone: {
+        type: String,
+        required: 'Phone is required',
+        unique: true,
+        trim: true,
+        validate: /(\s*)?(\+)?([- _():=+]?\d[- _():=+]?){10,14}(\s*)?/,
+    },
+    password: { type: String, required: 'Password is required', trim: true, validate: /[a-z\d]{6,100}/i },
     firstName: { type: String, required: 'First name is required', trim: true },
     lastName: { type: String, required: 'Last name is required', trim: true },
     avatar: { type: String, default: 'uploads\\\\avatars\\\\no_avatar.png' },
-    access: { type: String, default: 'User' },
+    access: { type: String, default: 'user' },
     confirmed: { type: Boolean, default: false },
     code: {
         code: { type: Number },
@@ -45,6 +51,14 @@ UserSchema.pre('save', function(next) {
 
 UserSchema.methods.comparePasswords = function(password) {
     return bcrypt.compareSync(password, this.password);
+};
+
+UserSchema.methods.verify = function(code) {
+    const currentDate = new Date();
+    if (this.code.expired <= currentDate || this.code.code !== Number(code)) {
+        return false;
+    }
+    return true;
 };
 
 UserSchema.methods.codeTimeout = function() {

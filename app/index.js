@@ -24,7 +24,7 @@ connectors();
 
 // Use middleware
 app.use(morgan('dev'));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(__dirname + '/uploads'));
 app.use(cors);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -35,6 +35,15 @@ app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 
 // Error handling
+
+app.use((errors, req, res, next) => {
+    const stack = {};
+    for (error in errors.errors) {
+        stack[error] = (errors.errors[error].message);
+    }
+    res.status(400).json(stack);
+});
+
 app.use((req, res, next) => {
     const error = new Error('Not found');
     error.status = 404;
