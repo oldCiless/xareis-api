@@ -5,14 +5,13 @@ const User = require('../models/user.model');
 const jwtService = require('../services/jwt.service');
 const m2mService = require('../services/m2m.service');
 
-
 exports.sign_up = async (req, res, next) => {
     const checkedUser = await User.findOne({ phone: req.body.phone });
 
     if (checkedUser) {
         if (checkedUser.confirmed) {
             return res.status(409).json({
-                message: 'User already exists',
+                message: 'User already exists'
             });
         } else {
             await User.deleteOne(checkedUser);
@@ -29,19 +28,17 @@ exports.sign_up = async (req, res, next) => {
         }
 
         const userPublicInfo = await User.findOneWithPublicFields({
-            phone: req.body.phone,
+            phone: req.body.phone
         });
 
         res.status(201).json({
             user: userPublicInfo,
             token: token,
-            message: 'SignUp success',
+            message: 'SignUp success'
         });
-
     } catch (e) {
         next(e);
     }
-
 };
 
 exports.sign_in = async (req, res, next) => {
@@ -66,7 +63,7 @@ exports.sign_in = async (req, res, next) => {
     res.status(200).json({
         user: userPublicInfo,
         token: token,
-        message: 'Sign In success',
+        message: 'Sign In success'
     });
 };
 
@@ -81,7 +78,7 @@ exports.gen_code = async (req, res, next) => {
         try {
             const code = randomString.generate({
                 length: 6,
-                charset: 'numeric',
+                charset: 'numeric'
             });
 
             const expiredDate = new Date().setMinutes(new Date().getMinutes() + 1);
@@ -92,7 +89,6 @@ exports.gen_code = async (req, res, next) => {
             user.save();
 
             res.status(200).json({ message: 'New code generated' });
-
         } catch (e) {
             res.status(500).json({ message: e.message });
         }
