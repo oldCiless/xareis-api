@@ -1,4 +1,3 @@
-const randomString = require('randomstring');
 const pick = require('lodash/pick');
 const User = require('../models/user.model');
 
@@ -6,25 +5,24 @@ const jwtService = require('../services/jwt.service');
 const m2mService = require('../services/m2m.service');
 
 exports.sign_up = async (req, res, next) => {
-    const checkedUser = await User.findOne({ phone: req.body.phone });
+    const checkedData = await User.findOne({ phone: req.body.phone });
 
-    if (checkedUser) {
-        if (checkedUser.confirmed) {
+    if (checkedData) {
+        if (checkedData.confirmed) {
             return res.status(409).json({
-                message: 'User already exists'
+                message: 'Пользователь уже существует'
             });
         } else {
-            await User.deleteOne(checkedUser);
+            await User.deleteOne(checkedData);
         }
     }
 
     try {
-        const newUser = await User.create(pick(req.body, User.createFields));
-        const token = await jwtService.genToken({ phone: req.body.phone });
+        const user = await User.create(pick(req.body, User.createFields));
 
         if (req.file) {
-            newUser.avatar = req.file.path.replace('app\\', '');
-            newUser.save();
+            user.avatar = req.file.path.replace('app\\', '');
+            user.save();
         }
 
         const userPublicInfo = await User.findOneWithPublicFields({
@@ -33,8 +31,7 @@ exports.sign_up = async (req, res, next) => {
 
         res.status(201).json({
             user: userPublicInfo,
-            token: token,
-            message: 'SignUp success'
+            message: 'Регистрация успешна'
         });
     } catch (e) {
         next(e);
@@ -42,19 +39,20 @@ exports.sign_up = async (req, res, next) => {
 };
 
 exports.sign_in = async (req, res, next) => {
-    console.log(req.body);
     const { phone, password } = req.body;
+
     if (!phone || !password) {
-        return res.status(400).json({ message: 'Incorrect data' });
+        return res.status(400).json({ message: 'Некорректные данные' });
     }
 
     const user = await User.findOne({ phone });
+
     if (!user) {
-        return res.status(400).json({ message: 'User not found' });
+        return res.status(404).json({ message: 'Пользователь не найден' });
     }
 
     if (!user.comparePasswords(password)) {
-        return res.status(400).json({ message: 'Incorrect password' });
+        return res.status(401).json({ message: 'Неправильный пароль' });
     }
 
     const token = await jwtService.genToken({ phone });
@@ -62,58 +60,63 @@ exports.sign_in = async (req, res, next) => {
 
     res.status(200).json({
         user: userPublicInfo,
-        token: token,
-        message: 'Sign In success'
+        token,
+        message: 'Авторизация выполнена'
     });
 };
 
 exports.gen_code = async (req, res, next) => {
-    if (!req.user) {
-        return res.status(403).json({ message: 'User not found' });
+    const { phone, password } = req.body;
+    if (!phone || !password) {
+        return res.status(400).json({ message: 'Некорректные данные' });
     }
 
-    const user = await User.findOne(req.user);
+    const user = await User.findOne({ phone });
+
+    if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
+
+    if (!user.comparePasswords(password)) {
+        return res.status(401).json({ message: 'Неправильный пароль' });
+    }
 
     if (!user.codeTimeout()) {
         try {
-            const code = randomString.generate({
-                length: 6,
-                charset: 'numeric'
-            });
-
-            const expiredDate = new Date().setMinutes(new Date().getMinutes() + 1);
+            const code = user.generateCode();
             //  await m2mService.sendMessage(user.phone, `Ваш код верификации: ${code}`);
-
-            user.code.code = code;
-            user.code.expired = expiredDate;
-            user.save();
-
-            res.status(200).json({ message: 'New code generated' });
-        } catch (e) {
-            res.status(500).json({ message: e.message });
+            res.status(200).json({ message: 'Новый код отправлен' });
+        } catch (error) {
+            res.status(500).json({ message: error.message });
         }
     } else {
-        res.status(400).json({ message: 'Please wait' });
+        res.status(202).json({ message: 'Пожалуйста подождите' });
     }
 };
 
 exports.verify = async (req, res, next) => {
-    if (!req.user) {
-        return res.status(403).json({ message: 'User not found' });
+    const { phone, password, code } = req.body;
+
+    if (!phone || !password) {
+        return res.status(400).json({ message: 'Некорректные данные' });
     }
 
-    const user = await User.findOne(req.user);
+    const user = await User.findOne({ phone });
+
+    if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
+
+    if (!user.comparePasswords(password)) {
+        return res.status(401).json({ message: 'Неправильный пароль' });
+    }
 
     if (user.confirmed) {
-        res.status(403).json({ message: 'User already verified' });
+        res.status(401).json({ message: 'Пользователь уже верифицирован' });
     }
-    console.log(req.body);
-    if (user.verify(req.body.code)) {
+
+    if (user.isVerified(code)) {
         user.confirmed = true;
         user.save();
-        res.status(201).json({ message: 'User verified' });
+        res.status(200).json({ message: 'Пользователь подтвержден' });
     } else {
-        res.status(400).json({ message: 'Bad code' });
+        res.status(401).json({ message: 'Неправильный код подтверждения' });
     }
 };
 
