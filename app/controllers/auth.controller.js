@@ -88,7 +88,7 @@ exports.gen_code = async (req, res, next) => {
             res.status(500).json({ message: error.message });
         }
     } else {
-        res.status(202).json({ message: 'Пожалуйста подождите' });
+        res.status(202).json({ message: `Повторите через ${user.timeoutTime()} секунд` });
     }
 };
 
@@ -115,6 +115,39 @@ exports.verify = async (req, res, next) => {
         user.confirmed = true;
         user.save();
         res.status(200).json({ message: 'Пользователь подтвержден' });
+    } else {
+        res.status(401).json({ message: 'Неправильный код подтверждения' });
+    }
+};
+
+exports.forgot = async (req, res, next) => {
+    const { phone } = req.body;
+    const user = await User.findOne({ phone });
+
+    if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
+
+    if (!user.codeTimeout()) {
+        try {
+            const code = user.generateCode();
+            //  await m2mService.sendMessage(user.phone, `Ваш код верификации: ${code}`);
+            res.status(200).json({ message: 'Новый код отправлен' });
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    } else {
+        res.status(202).json({ message: `Повторите через ${user.timeoutTime()} секунд` });
+    }
+};
+
+exports.changePasswordWithCode = async (req, res, next) => {
+    const { phone, code, password } = req.body;
+    const user = await User.findOne({ phone });
+    if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
+
+    if (user.isVerified(code)) {
+        user.password = password;
+        user.save();
+        res.status(200).json({ message: 'Пароль изменен' });
     } else {
         res.status(401).json({ message: 'Неправильный код подтверждения' });
     }

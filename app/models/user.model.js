@@ -90,4 +90,9 @@ UserSchema.methods.codeTimeout = function() {
     return true;
 };
 
+UserSchema.methods.timeoutTime = function() {
+    const currentDate = new Date();
+    return Math.round((this.code.expired - currentDate) / 1000);
+};
+
 module.exports = mongoose.model('User', UserSchema);

@@ -10,5 +10,6 @@ router.post('/signin', AuthController.sign_in);
 router.get('/me', AuthController.me);
 router.post('/gencode', AuthController.gen_code);
 router.post('/verify', AuthController.verify);
-
+router.post('/forgot', AuthController.forgot);
+router.patch('/change_password_with_code', AuthController.changePasswordWithCode);
 module.exports = router;
