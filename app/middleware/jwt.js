@@ -7,9 +7,7 @@ module.exports = async (req, res, next) => {
         try {
             const { phone } = await jwtService.verify(authorization.replace('Bearer ', ''));
             req.user = await User.findOne({ phone });
-        } catch (e) {
-
-        }
+        } catch (e) {}
     }
     next();
 };

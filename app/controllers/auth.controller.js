@@ -55,7 +55,7 @@ exports.sign_in = async (req, res, next) => {
         return res.status(401).json({ message: 'Неправильный пароль' });
     }
 
-    const token = await jwtService.genToken({ phone });
+    const token = await jwtService.genToken({ phone, access: user.access });
     const userPublicInfo = await User.findOneWithPublicFields({ phone });
 
     res.status(200).json({

@@ -34,6 +34,8 @@ UserSchema.statics.createFields = ['phone', 'password', 'firstName', 'lastName']
 
 UserSchema.statics.findOneWithPublicFields = function(params, callback) {
     return this.findOne(params, callback).select({
+        code: 0,
+        confirmed: 0,
         password: 0,
         _id: 0,
         __v: 0,
