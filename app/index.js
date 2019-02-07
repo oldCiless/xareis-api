@@ -12,6 +12,7 @@ const jwt = require('./middleware/jwt');
 // Include routes
 const userRoutes = require('./routes/user');
 const authRoutes = require('./routes/auth');
+const contractsRoutes = require('./routes/contracts');
 
 // Run services
 const app = express();
@@ -33,13 +34,14 @@ app.use(jwt);
 // Init routes
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/contracts', contractsRoutes);
 
 // Error handling
 
 app.use((errors, req, res, next) => {
     const stack = {};
     for (error in errors.errors) {
-        stack[error] = (errors.errors[error].message);
+        stack[error] = errors.errors[error].message;
     }
     res.status(400).json(stack);
 });
@@ -56,7 +58,7 @@ app.use((error, req, res, next) => {
         error: {
             message: error.message
         }
-    })
+    });
 });
 
 module.exports = app;

@@ -25,6 +25,9 @@ const UserSchema = mongoose.Schema(
         code: {
             code: { type: Number },
             expired: { type: Date }
+        },
+        contracts: {
+            type: Array
         }
     },
     { timestamps: true }
