@@ -1,21 +1,25 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable no-restricted-syntax */
+
 const Contract = require('../models/contract.model');
 
-exports.all = async (req, res, next) => {
-    const contracts = req.user.contracts;
+exports.all = async (req, res) => {
+    const { contracts } = req.user.contracts;
     const sendingContracts = [];
 
-    for (contract of contracts) {
-        let searchContract = await Contract.findOne({ id: contract.id });
+    for (const contract of contracts) {
+        const searchContract = await Contract.findOne({ id: contract.id });
         const namedContract = Object.assign({ naming: contract.name }, searchContract._doc);
         sendingContracts.push(namedContract);
     }
     res.status(200).json({ contracts: sendingContracts });
 };
 
-exports.one = async (req, res, next) => {
-    const contracts = req.user.contracts;
+exports.one = async (req, res) => {
+    const { contracts } = req.user.contracts;
     const contractId = req.params.id;
-    for (contract of contracts) {
+    for (const contract of contracts) {
         if (contract.id === Number(contractId)) {
             const searchContract = await Contract.findOne({ id: contract.id });
             const namedContract = Object.assign({ naming: contract.name }, searchContract._doc);

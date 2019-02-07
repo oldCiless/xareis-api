@@ -9,13 +9,13 @@ const UserSchema = mongoose.Schema(
             required: 'Phone is required',
             unique: true,
             trim: true,
-            validate: /(\s*)?(\+)?([- _():=+]?\d[- _():=+]?){10,14}(\s*)?/
+            validate: /(\s*)?(\+)?([- _():=+]?\d[- _():=+]?){10,14}(\s*)?/,
         },
         password: {
             type: String,
             required: 'Password is required',
             trim: true,
-            validate: /[a-z\d]{6,100}/i
+            validate: /[a-z\d]{6,100}/i,
         },
         firstName: { type: String, required: 'First name is required', trim: true },
         lastName: { type: String, required: 'Last name is required', trim: true },
@@ -24,18 +24,18 @@ const UserSchema = mongoose.Schema(
         confirmed: { type: Boolean, default: false },
         code: {
             code: { type: Number },
-            expired: { type: Date }
+            expired: { type: Date },
         },
         contracts: {
-            type: Array
-        }
+            type: Array,
+        },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 UserSchema.statics.createFields = ['phone', 'password', 'firstName', 'lastName'];
 
-UserSchema.statics.findOneWithPublicFields = function(params, callback) {
+UserSchema.statics.findOneWithPublicFields = function (params, callback) {
     return this.findOne(params, callback).select({
         code: 0,
         confirmed: 0,
@@ -43,26 +43,25 @@ UserSchema.statics.findOneWithPublicFields = function(params, callback) {
         _id: 0,
         __v: 0,
         createdAt: 0,
-        updatedAt: 0
+        updatedAt: 0,
     });
 };
 
-UserSchema.pre('save', function(next) {
+UserSchema.pre('save', function (next) {
     if (!this.isModified('password')) {
         return next();
     }
 
     const salt = bcrypt.genSaltSync(10);
     this.password = bcrypt.hashSync(this.password, salt);
-
-    next();
+    return next();
 });
 
-UserSchema.methods.comparePasswords = function(password) {
+UserSchema.methods.comparePasswords = function (password) {
     return bcrypt.compareSync(password, this.password);
 };
 
-UserSchema.methods.isVerified = function(code) {
+UserSchema.methods.isVerified = function (code) {
     const currentDate = new Date();
     if (this.code.expired <= currentDate || this.code.code !== Number(code)) {
         return false;
@@ -70,10 +69,10 @@ UserSchema.methods.isVerified = function(code) {
     return true;
 };
 
-UserSchema.methods.generateCode = function() {
+UserSchema.methods.generateCode = function () {
     const code = randomString.generate({
         length: 6,
-        charset: 'numeric'
+        charset: 'numeric',
     });
 
     const expiredDate = new Date().setMinutes(new Date().getMinutes() + 1);
@@ -85,17 +84,18 @@ UserSchema.methods.generateCode = function() {
     return code;
 };
 
-UserSchema.methods.codeTimeout = function() {
+UserSchema.methods.codeTimeout = function () {
     const currentDate = new Date();
     if (!this.code.code) {
         return false;
-    } else if (currentDate >= this.code.expired) {
+    }
+    if (currentDate >= this.code.expired) {
         return false;
     }
     return true;
 };
 
-UserSchema.methods.timeoutTime = function() {
+UserSchema.methods.timeoutTime = function () {
     const currentDate = new Date();
     return Math.round((this.code.expired - currentDate) / 1000);
 };

@@ -1,20 +1,16 @@
 const pick = require('lodash/pick');
 const User = require('../models/user.model');
-
 const jwtService = require('../services/jwt.service');
-const m2mService = require('../services/m2m.service');
 
 exports.sign_up = async (req, res, next) => {
     const checkedData = await User.findOne({ phone: req.body.phone });
-
     if (checkedData) {
         if (checkedData.confirmed) {
             return res.status(409).json({
-                message: 'Пользователь уже существует'
+                message: 'Пользователь уже существует',
             });
-        } else {
-            await User.deleteOne(checkedData);
         }
+        await User.deleteOne(checkedData);
     }
 
     try {
@@ -26,19 +22,19 @@ exports.sign_up = async (req, res, next) => {
         }
 
         const userPublicInfo = await User.findOneWithPublicFields({
-            phone: req.body.phone
+            phone: req.body.phone,
         });
 
         res.status(201).json({
             user: userPublicInfo,
-            message: 'Регистрация успешна'
+            message: 'Регистрация успешна',
         });
     } catch (e) {
         next(e);
     }
 };
 
-exports.sign_in = async (req, res, next) => {
+exports.sign_in = async (req, res) => {
     const { phone, password } = req.body;
 
     if (!phone || !password) {
@@ -61,11 +57,11 @@ exports.sign_in = async (req, res, next) => {
     res.status(200).json({
         user: userPublicInfo,
         token,
-        message: 'Авторизация выполнена'
+        message: 'Авторизация выполнена',
     });
 };
 
-exports.gen_code = async (req, res, next) => {
+exports.gen_code = async (req, res) => {
     const { phone, password } = req.body;
     if (!phone || !password) {
         return res.status(400).json({ message: 'Некорректные данные' });
@@ -81,7 +77,7 @@ exports.gen_code = async (req, res, next) => {
 
     if (!user.codeTimeout()) {
         try {
-            const code = user.generateCode();
+            user.generateCode();
             //  await m2mService.sendMessage(user.phone, `Ваш код верификации: ${code}`);
             res.status(200).json({ message: 'Новый код отправлен' });
         } catch (error) {
@@ -92,7 +88,7 @@ exports.gen_code = async (req, res, next) => {
     }
 };
 
-exports.verify = async (req, res, next) => {
+exports.verify = async (req, res) => {
     const { phone, password, code } = req.body;
 
     if (!phone || !password) {
@@ -120,7 +116,7 @@ exports.verify = async (req, res, next) => {
     }
 };
 
-exports.forgot = async (req, res, next) => {
+exports.forgot = async (req, res) => {
     const { phone } = req.body;
     const user = await User.findOne({ phone });
 
@@ -128,7 +124,7 @@ exports.forgot = async (req, res, next) => {
 
     if (!user.codeTimeout()) {
         try {
-            const code = user.generateCode();
+            // const code = user.generateCode();
             //  await m2mService.sendMessage(user.phone, `Ваш код верификации: ${code}`);
             res.status(200).json({ message: 'Новый код отправлен' });
         } catch (error) {
@@ -139,7 +135,7 @@ exports.forgot = async (req, res, next) => {
     }
 };
 
-exports.changePasswordWithCode = async (req, res, next) => {
+exports.changePasswordWithCode = async (req, res) => {
     const { phone, code, password } = req.body;
     const user = await User.findOne({ phone });
     if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
@@ -153,7 +149,7 @@ exports.changePasswordWithCode = async (req, res, next) => {
     }
 };
 
-exports.me = async (req, res, next) => {
+exports.me = async (req, res) => {
     if (req.user) {
         res.status(200).json(req.user);
     } else {

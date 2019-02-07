@@ -1,3 +1,6 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable guard-for-in */
+
 // Include libs
 require('dotenv').config();
 const express = require('express');
@@ -19,13 +22,13 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
-    console.log('Server started on port ' + port);
+    console.log(`Server started on port ${port}`);
 });
 connectors();
 
 // Use middleware
 app.use(morgan('dev'));
-app.use('/uploads', express.static(__dirname + '/uploads'));
+app.use('/uploads', express.static(`${__dirname}/uploads`));
 app.use(cors);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -38,9 +41,9 @@ app.use('/api/contracts', contractsRoutes);
 
 // Error handling
 
-app.use((errors, req, res, next) => {
+app.use((errors, req, res) => {
     const stack = {};
-    for (error in errors.errors) {
+    for (const error in errors.errors) {
         stack[error] = errors.errors[error].message;
     }
     res.status(400).json(stack);
@@ -52,12 +55,12 @@ app.use((req, res, next) => {
     next(error);
 });
 
-app.use((error, req, res, next) => {
+app.use((error, req, res) => {
     res.status(error.status || 500);
     res.json({
         error: {
-            message: error.message
-        }
+            message: error.message,
+        },
     });
 });
 

@@ -2,87 +2,87 @@ const mongoose = require('mongoose');
 
 const ContractSchema = mongoose.Schema({
     type: {
-        type: String
+        type: String,
     },
     id: {
         type: Number,
-        unique: true
+        unique: true,
     },
     main: {
         id: {
-            type: Number
+            type: Number,
         },
         sim: {
-            type: String
+            type: String,
         },
         name: {
-            type: String
-        }
+            type: String,
+        },
     },
     status: {
         state: {
-            type: Number
+            type: Number,
         },
         enabled: {
-            type: Boolean
+            type: Boolean,
         },
         signal: {
-            type: String
+            type: String,
         },
         timer: {
-            type: Number
-        }
+            type: Number,
+        },
     },
     contract: {
         type: {
-            type: String
+            type: String,
         },
         owner: {
-            type: String
+            type: String,
         },
         region: {
-            type: String
+            type: String,
         },
         address: {
-            type: String
+            type: String,
         },
         chop: {
-            type: String
+            type: String,
         },
         info: {
-            type: String
-        }
+            type: String,
+        },
     },
     geo: {
         lat: {
-            type: Number
+            type: Number,
         },
         lng: {
-            type: Number
-        }
+            type: Number,
+        },
     },
     tech: {
         device: {
-            type: String
+            type: String,
         },
         type: {
-            type: String
+            type: String,
         },
         parser: {
-            type: String
+            type: String,
         },
         modems: {
             sms: {
-                type: Number
+                type: Number,
             },
             voice: {
-                type: String
+                type: String,
             },
             data: {
-                type: String
-            }
-        }
-    }
+                type: String,
+            },
+        },
+    },
 });
 
 module.exports = mongoose.model('Contract', ContractSchema);
